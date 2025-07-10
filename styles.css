@@ -1,0 +1,578 @@
+/* 基础重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "微软雅黑", sans-serif;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+}
+
+/* 背景视频 */
+#bgVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/* 公告弹窗（保持居中） */
+.announcement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 30px;
+  border-radius: 20px;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+  z-index: 1000;
+  display: none;
+}
+
+.announcement.active {
+  display: block;
+}
+
+/* 确认按钮 */
+.confirm-btn {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #45a049;
+}
+
+/* 顶部导航（还原原始位置：顶部居中） */
+.top-nav {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 1000;
+}
+
+.top-btn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: none;
+  border-radius: 25px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.top-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* 主页面按钮（还原原始位置：中间偏上） */
+.main-buttons {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  z-index: 900;
+  display: none;
+}
+
+.main-buttons.active {
+  display: grid;
+}
+
+.main-btn {
+  width: 200px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: none;
+  border-radius: 15px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.main-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* 副页面（默认隐藏） */
+#sub-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  z-index: 800;
+  display: none;
+}
+
+.sub-buttons {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+.sub-btn {
+  width: 120px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sub-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* 密码弹窗（美化版：圆角窗口） */
+.password-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px 40px;
+  border-radius: 20px; /* 大圆角 */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  z-index: 1100;
+  display: none;
+  width: 90%;
+  max-width: 400px;
+}
+
+.password-box h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.password-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.password-box input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* 关闭按钮（独立在弹窗右上角） */
+.password-modal .close-x {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.password-modal .close-x:hover {
+  color: #f44336;
+}
+
+/* 设置面板样式：改为居中弹窗 */
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 500px;
+  background: rgba(0, 0, 0, 0.6);
+  /* 半透明背景 */
+  backdrop-filter: blur(10px);
+  /* 磨砂效果 */
+  color: #fff;
+  /* 文字白色 */
+  padding: 20px;
+  /* 内边距 */
+  border-radius: 10px;
+  /* 圆角 */
+  z-index: 1000;
+  /* 确保在最上层 */
+  display: none;
+  /* 默认隐藏，由 JS 控制显示 */
+  pointer-events: auto;
+  /* 允许鼠标交互 */
+}
+
+/* 设置面板激活时显示 */
+.settings-panel.active {
+  display: block;
+}
+
+/* 关闭按钮样式 */
+.settings-panel .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.settings-panel .close-btn:hover {
+  transform: scale(1.1);
+  color: #f44336;
+}
+
+/* 设置项间距 */
+.setting-item {
+  margin-bottom: 20px;
+}
+
+.setting-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.setting-item select,
+.setting-item input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 14px;
+}
+
+.setting-item .btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.setting-item .btn-group button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.setting-item .btn-group button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.settings-panel .save-btn {
+  align-self: flex-end;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.settings-panel .save-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+/* 设置按钮（还原原始位置：右下角） */
+.settings-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: none;
+  border-radius: 25px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1300;
+  transition: all 0.3s ease;
+}
+
+.settings-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* 特效容器：全屏覆盖，不影响点击 */
+#effect-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* 单个特效元素样式：星星/樱花 */
+.effect {
+  position: absolute;
+  font-size: 20px;
+  color: #fff;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+/* 新增特效样式：雪花、萤火虫、落叶 */
+/* 雪花特效 */
+.effect-snow {
+  color: #e6f7ff;
+  text-shadow: 0 0 5px #e6f7ff;
+}
+
+/* 萤火虫特效（发光） */
+.effect-firefly {
+  color: #fff9c4;
+  text-shadow: 0 0 8px #fff9c4; /* 明显发光效果 */
+  animation: glow 1s infinite alternate;
+}
+
+/* 萤火虫闪烁动画 */
+@keyframes glow {
+  to {
+    text-shadow: 0 0 15px #fff9c4;
+  }
+}
+
+/* 落叶特效 */
+.effect-petal {
+  color: #f4a460;
+  animation: fall 5s linear infinite;
+}
+
+/* 落叶飘落动画 */
+@keyframes fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+/* 鼠标拖尾效果样式 */
+.trail {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.8;
+  transform: translate(-50%, -50%);
+}
+
+/* 爆炸特效样式 */
+.explosion {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+/* 爆炸碎片样式 */
+.explosion span {
+  position: absolute;
+  opacity: 1;
+  will-change: transform;
+}
+
+/* 保存设置按钮样式（可根据实际需求调整原有样式） */
+.save-btn {
+    background-color: #4CAF50; /* 假设这是保存按钮的目标颜色，可根据实际修改 */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 应用颜色按钮样式，使其和保存设置按钮颜色一致 */
+button[onclick="changeBtnColor()"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 重置设置按钮样式，使其和保存设置按钮颜色一致 */
+.reset-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 按钮 hover 效果，增强交互感 */
+.save-btn:hover,
+button[onclick="changeBtnColor()"]:hover,
+.reset-btn:hover {
+    opacity: 0.8; /* 鼠标悬浮时透明度变化 */
+    transform: scale(1.05); /* 鼠标悬浮时轻微放大 */
+}
+
+/* 特效开关按钮样式（和保存按钮统一） */
+.setting-item button[onclick="toggleEffectEnabled()"] {
+  background-color: #4CAF50; /* 与保存按钮同色 */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 特效开关按钮 hover 效果 */
+.setting-item button[onclick="toggleEffectEnabled()"]:hover {
+  opacity: 0.8; /* 透明渐变 */
+  transform: scale(1.05); /* 轻微放大 */
+}
+
+/* 解决文字垂直居中问题（可选） */
+#effect-switch-text {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 底部专利提示动画 */
+.patent-bottom {
+  position: fixed;
+  bottom: -60px; /* 初始藏在底部外 */
+  left: 0;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 9999;
+  transition: bottom 0.5s ease;
+}
+
+.patent-ball {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(60px); /* 初始藏在容器内 */
+  transition: all 0.5s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.patent-content {
+  width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+  overflow: hidden;
+}
+
+.patent-content p {
+  white-space: nowrap;
+  font-size: 14px;
+  color: #333;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* 滑出动画 */
+.patent-bottom.active {
+  bottom: 0;
+}
+.patent-bottom.active .patent-ball {
+  transform: translateY(10px);
+}
+
+/* 展开动画 */
+.patent-bottom.expanded .patent-ball {
+  width: 220px;
+  border-radius: 20px;
+}
+.patent-bottom.expanded .patent-content {
+  width: 100%;
+}
+.patent-bottom.expanded .patent-content p {
+  opacity: 1;
+}
+
+/* 回缩动画 */
+.patent-bottom.closing .patent-ball {
+  width: 40px;
+  border-radius: 50%;
+  transform: translateY(10px);
+}
+.patent-bottom.closing .patent-content {
+  width: 0;
+}
+.patent-bottom.closing .patent-content p {
+  opacity: 0;
+}
+
+/* 隐藏动画 */
+.patent-bottom.hidden {
+  bottom: -60px;
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>马云网页</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- 背景视频 -->
+  <video id="bgVideo" autoplay loop muted></video>
+  <!-- 特效容器 -->
+  <div id="effect-container"></div>
+
+  <!-- 主页面公告 -->
+  <div class="announcement active" id="mainAnnounce">
+    <h2>欢迎访问</h2>
+    <p>本网站尚未完善，后续尽情期待 
+       网页跳转无效</p >
+    <button class="confirm-btn" onclick="closeAnnouncement('mainAnnounce')">确认</button>
+  </div>
+
+  <!-- 副页面公告 -->
+  <div class="announcement" id="subAnnounce">
+    <h2>欢迎进入副页</h2>
+    <p>这里有10个实用链接，后续可自定义修改</p >
+    <button class="confirm-btn" onclick="closeAnnouncement('subAnnounce')">确认</button>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="top-nav">
+    <button class="top-btn" onclick="showMainPage()">主页面</button>
+    <button class="top-btn" onclick="showPasswordModal()">副页面</button>
+  </div>
+
+  <!-- 主页面按钮 -->
+  <div class="main-buttons">
+    <button class="main-btn" onclick="window.open('https://space.bilibili.com/3546772106381859')">页面1</button>
+    <button class="main-btn" onclick="window.open('https://www.taobao.com')">页面2</button>
+    <button class="main-btn" onclick="window.open('https://www.jd.com')">页面3</button>
+    <button class="main-btn" onclick="window.open('https://www.zhihu.com')">页面4</button>
+  </div>
+
+ <!-- 底部专利提示 -->
+ <div class="patent-bottom" id="patentBottom">
+  <!-- 圆球容器（控制动画） -->
+  <div class="patent-ball" id="patentBall">
+    <!-- 展开后的内容 -->
+    <div class="patent-content" id="patentContent">
+      <p>个人专利，请勿盗窃</p>
+    </div>
+  </div>
+</div>
+
+  <!-- 副页面 -->
+  <div id="sub-page">
+    <div class="sub-buttons">
+      <button class="sub-btn" onclick="window.open('https://www.qq.com')">链接1</button>
+      <button class="sub-btn" onclick="window.open('https://www.sina.com.cn')">链接2</button>
+      <button class="sub-btn" onclick="window.open('https://www.163.com')">链接3</button>
+      <button class="sub-btn" onclick="window.open('https://www.sohu.com')">链接4</button>
+      <button class="sub-btn" onclick="window.open('https://www.ifeng.com')">链接5</button>
+      <button class="sub-btn" onclick="window.open('https://www.douyu.com')">链接6</button>
+      <button class="sub-btn" onclick="window.open('https://www.huya.com')">链接7</button>
+      <button class="sub-btn" onclick="window.open('https://www.bilibili.com')">链接8</button>
+      <button class="sub-btn" onclick="window.open('https://www.kuaishou.com')">链接9</button>
+      <button class="sub-btn" onclick="window.open('chat.html')">AI聊天（未完善） </button>
+    </div>
+  </div>
+
+  <!-- 密码弹窗 -->
+<div class="password-modal" id="passwordModal">
+  <button class="close-x" onclick="closePasswordModal()">×</button>
+  <div class="password-box">
+    <h3>副页面仅对作者朋友开放</h3>
+    <input type="password" id="passwordInput" placeholder="请输入密码">
+    <button onclick="checkPassword()" class="confirm-btn">确认</button>
+  </div>
+</div>
+
+  <!-- 设置面板 -->
+  <div class="settings-panel" id="settingsPanel">
+    <button class="close-btn" onclick="toggleSettings()">×</button>
+    <h2>个性化设置</h2>
+
+    <!-- 特效类型选择 -->
+    <div class="setting-item">
+      <label>特效类型：</label>
+      <select onchange="setEffectType(this.value)">
+  <option value="star">星星</option>
+  <option value="sakura">樱花</option>
+  <option value="snow">雪花</option> <!-- 新增 -->
+  <option value="firefly">萤火虫</option> <!-- 新增 -->
+  <option value="petal">落叶</option> <!-- 新增 -->
+</select>
+
+    </div>
+
+    <!-- 背景视频切换 -->
+    <div class="setting-item">
+      <label>选择背景视频：</label>
+      <select id="videoSelect" onchange="changeVideo()">
+        <option value="1.mp4">视频 1</option>
+        <option value="3.mp4">视频 2</option>
+        <option value="1.mp4">视频 3</option>
+        <option value="3.mp4">视频 4</option>
+        <option value="1.mp4">视频 5</option>
+        <option value="3.mp4">视频 6</option>
+        <option value="1.mp4">视频 7</option>
+        <option value="3.mp4">视频 8</option>
+        <option value="1.mp4">视频 9</option>
+        <option value="3.mp4">视频 10</option>
+      </select>
+    </div>
+
+    <!-- 特效数量调整（顶部） -->
+    <div class="setting-item">
+      <label>特效数量（顶部）：</label>
+      <div class="btn-group">
+        <button onclick="updateEffectCount(-5)">减少</button>
+        <span id="effectCount">30</span>
+        <button onclick="updateEffectCount(5)">增加</button>
+      </div>
+    </div>
+
+    <!-- 特效数量调整（底部） -->
+    <div class="setting-item">
+      <label>特效数量：</label>
+      <div class="btn-group">
+        <button onclick="changeEffectCount(-5)">-</button>
+        <span id="effect-count">30</span>
+        <button onclick="changeEffectCount(5)">+</button>
+      </div>
+    </div>
+
+    <!-- 特效大小调整 -->
+    <div class="setting-item">
+      <label>特效大小：</label>
+      <div class="btn-group">
+        <button onclick="changeEffectSize(-1)">-</button>
+        <span id="effect-size">8</span>
+        <button onclick="changeEffectSize(1)">+</button>
+      </div>
+    </div>
+
+    <!-- 特效开关 -->
+    <div class="setting-item">
+      <label>特效开关：</label>
+      <button onclick="toggleEffectEnabled()">
+        <span id="effect-switch-text">开启</span>
+      </button>
+    </div>
+
+    <!-- 按钮颜色设置（新增，放在设置面板内） -->
+    <div class="setting-item">
+      <label>按钮颜色：</label>
+      <input type="color" id="btnColorPicker" value="#4CAF50">
+      <button onclick="changeBtnColor()">应用颜色</button>
+    </div>
+
+    <!-- 保存设置按钮 -->
+    <button class="save-btn" onclick="saveSettings()">保存设置</button>
+    <button class="reset-btn" onclick="resetSettings()">重置设置</button>
+
+  </div>
+
+  <!-- 设置按钮 -->
+  <button class="settings-toggle" onclick="toggleSettings()">⚙️ 设置</button>
+
+  <script src="main.js"></script>
+</body>
+
+</html>

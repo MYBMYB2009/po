@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI角色扮演聊天界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #bg-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.6);
+            z-index: -2;
+        }
+
+        .blur-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: -1;
+        }
+
+        .chat-container {
+            width: 600px;
+            height: 700px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .chat-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding: 20px;
+            z-index: 2;
+        }
+
+        /* 顶部按钮样式 */
+        .save-btn, .settings-btn, .role-switch-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 10;
+            position: absolute;
+            top: 15px;
+        }
+
+        .save-btn {
+            left: 15px;
+            background: rgba(100, 149, 237, 0.7);
+        }
+
+        .role-switch-btn {
+            left: 60px;
+            background: rgba(100, 149, 237, 0.7);
+        }
+
+        .settings-btn {
+            right: 15px;
+            background: rgba(100, 149, 237, 0.7);
+        }
+
+        /* 当前角色显示 */
+        .current-role {
+            text-align: center;
+            color: white;
+            padding: 10px 0;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* 聊天消息区域 */
+        .chat-messages {
+            height: calc(100% - 130px);
+            padding: 10px 0;
+            overflow-y: auto;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 18px;
+            clear: both;
+            position: relative;
+        }
+
+        .message.my-message .delete-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            color: #ff4444;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .message.my-message:hover .delete-btn {
+            display: block;
+        }
+
+        .message.retracted {
+            font-style: italic;
+            color: #888;
+            background: transparent;
+        }
+
+        .my-message {
+            background: rgba(100, 149, 237, 0.7);
+            color: white;
+            float: right;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            float: left;
+            border-bottom-left-radius: 4px;
+        }
+
+        .loading {
+            color: #888;
+            font-style: italic;
+        }
+
+        /* 输入区域 */
+        .input-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+        }
+
+        #emoji-btn, #send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .emoji-panel {
+            position: absolute;
+            bottom: 70px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .emoji-panel span {
+            font-size: 22px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        /* 设置面板样式 */
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .settings-overlay.active {
+            display: flex;
+        }
+
+        .settings-panel {
+            width: 400px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .setting-section {
+            margin-bottom: 25px;
+        }
+
+        .setting-title {
+            color: white;
+            font-size: 16px;
+            margin: 0 0 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 角色设置样式 */
+        .default-roles {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .role-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .role-btn.active {
+            border-color: white;
+            background: rgba(100, 149, 237, 0.5);
+        }
+
+        .custom-role-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .add-personality {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .personality-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            outline: none;
+        }
+
+        .add-btn {
+            padding: 0 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(100, 149, 237, 0.7);
+            color: white;
+            cursor: pointer;
+        }
+
+        .personality-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .personality-tag {
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .color-option.selected {
+            border-color: white;
+        }
+
+        .transparency-control {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .transparency-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        /* 保存设置按钮 */
+        .save-settings-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(100, 149, 237, 0.7);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 提示框 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bg-video">
+        <source src="9.MP4" type="video/mp4">
+        浏览器不支持视频播放
+    </video>
+
+    <div class="blur-mask"></div>
+    <div class="toast" id="toast"></div>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-content">
+            <button class="save-btn" id="save-btn">💾</button>
+            <button class="role-switch-btn" id="role-switch-btn">🔄</button>
+            <button class="settings-btn" id="settings-btn">⚙️</button>
+
+            <!-- 当前角色显示 -->
+            <div class="current-role" id="current-role">
+                当前角色：马云波
+            </div>
+
+            <!-- 聊天消息区域 -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="message ai-message">我是马云波，有什么想聊的吗？</div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <button id="emoji-btn">😀</button>
+                <input type="text" id="user-input" placeholder="输入消息...">
+                <button id="send-btn">→</button>
+                <div class="emoji-panel" id="emoji-panel">
+                    <span>😂</span><span>😍</span><span>👍</span><span>😭</span><span>😡</span>
+                    <span>🤣</span><span>👏</span><span>🙏</span><span>😎</span><span>🤔</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- 设置面板 -->
+        <div class="settings-overlay" id="settings-overlay">
+            <div class="settings-panel">
+                <button class="close-btn" id="close-btn">×</button>
+
+                <!-- 角色设置区域 -->
+                <div class="setting-section">
+                    <div class="setting-title">角色设置</div>
+                    
+                    <div class="default-roles">
+                        <button class="role-btn active" data-role="马云波">马云波（默认）</button>
+                        <button class="role-btn" data-role="闫润泽">闫润泽</button>
+                    </div>
+                    
+                    <div>
+                        <input type="text" class="custom-role-input" id="custom-role-input" placeholder="输入自定义角色（如：孙悟空）">
+                        <div class="add-personality">
+                            <input type="text" class="personality-input" id="personality-input" placeholder="添加额外性格（如：幽默、严肃）">
+                            <button class="add-btn" id="add-personality-btn">添加</button>
+                        </div>
+                        <div class="personality-tags" id="personality-tags-container">
+                            <!-- 动态添加的性格标签会在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 窗口设置区域 -->
+                <div class="setting-section">
+                    <div class="setting-title">按钮颜色（半透明）</div>
+                    <div class="color-options" id="button-colors">
+                        <div class="color-option selected" data-color="rgba(100, 149, 237, 0.7)" style="background: rgba(100, 149, 237, 0.7)"></div>
+                        <div class="color-option" data-color="rgba(255, 165, 0, 0.7)" style="background: rgba(255, 165, 0, 0.7)"></div>
+                        <div class="color-option" data-color="rgba(255, 99, 71, 0.7)" style="background: rgba(255, 99, 71, 0.7)"></div>
+                        <div class="color-option" data-color="rgba(154, 205, 50, 0.7)" style="background: rgba(154, 205, 50, 0.7)"></div>
+                        <div class="color-option" data-color="rgba(138, 43, 226, 0.7)" style="background: rgba(138, 43, 226, 0.7)"></div>
+                        <div class="color-option" data-color="rgba(25, 135, 84, 0.7)" style="background: rgba(25, 135, 84, 0.7)"></div>
+                    </div>
+                </div>
+
+                <div class="setting-section">
+                    <div class="setting-title">窗口透明度（仅控制框架）</div>
+                    <input type="range" min="0" max="90" value="15" class="transparency-control" id="window-transparency">
+                    <div class="transparency-label">
+                        <span>无框架</span>
+                        <span>有框架</span>
+                    </div>
+                </div>
+
+                <!-- 保存设置按钮 -->
+                <button class="save-settings-btn" id="save-settings-btn">保存当前设置</button>
+            </div>
+        </div>
+
+        <script>
+            // 修复变量名冲突：将数组名改为personalityTagsArray，避免与DOM元素重名
+            const presetRoles = {
+                "马云波": {
+                    personality: "被骂了喜欢用非常严厉骂回去、没被骂的时候非常文雅、爱讲湘潭话、不抽烟爱喝点啤酒吃点槟榔、善于分析，说话直接，偶尔带点幽默感，作为作者会关注细节和逻辑",
+                    isPreset: true
+                },
+                "闫润泽": {
+                    personality: "爱扣鼻屎吃或者乱弹、有点蠢逻辑不像正常人、开朗、讲义气，说话带点骚气，喜欢用口语化表达，时不时突然喜欢骂人",
+                    isPreset: true
+                }
+            };
+
+            // 全局状态管理
+            let currentRole = "马云波";
+            let customRoleName = "";
+            let personalityTagsArray = []; // 存储性格标签的数组（已修复命名冲突）
+            let isCustomRole = false;
+
+            // 元素获取（统一修正DOM元素ID对应的变量名）
+            const chatContainer = document.getElementById('chat-container');
+            const transparencySlider = document.getElementById('window-transparency');
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const emojiBtn = document.getElementById('emoji-btn');
+            const emojiPanel = document.getElementById('emoji-panel');
+            const emojiList = document.querySelectorAll('.emoji-panel span');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsOverlay = document.getElementById('settings-overlay');
+            const closeBtn = document.getElementById('close-btn');
+            const colorOptions = document.querySelectorAll('.color-option');
+            const saveBtn = document.getElementById('save-btn');
+            const toast = document.getElementById('toast');
+            const currentRoleEl = document.getElementById('current-role');
+            const roleSwitchBtn = document.getElementById('role-switch-btn');
+            const defaultRoleBtns = document.querySelectorAll('.role-btn');
+            const customRoleInput = document.getElementById('custom-role-input');
+            const personalityInput = document.getElementById('personality-input');
+            const addPersonalityBtn = document.getElementById('add-personality-btn');
+            const personalityTagsContainer = document.getElementById('personality-tags-container'); // 性格标签容器DOM
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+            // 预设角色切换
+            defaultRoleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    defaultRoleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentRole = btn.getAttribute('data-role');
+                    isCustomRole = false;
+                    customRoleInput.value = '';
+                    personalityTagsArray = [];
+                    personalityTagsContainer.innerHTML = '';
+                    updateCurrentRoleDisplay();
+                });
+            });
+
+            // 添加额外性格标签
+            addPersonalityBtn.addEventListener('click', () => {
+                const personality = personalityInput.value.trim();
+                if (personality && !personalityTagsArray.includes(personality)) {
+                    personalityTagsArray.push(personality);
+                    renderPersonalityTags();
+                    personalityInput.value = '';
+                }
+            });
+
+            personalityInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addPersonalityBtn.click();
+            });
+
+            // 渲染性格标签
+            function renderPersonalityTags() {
+                personalityTagsContainer.innerHTML = '';
+                personalityTagsArray.forEach((tag, index) => {
+                    const tagEl = document.createElement('div');
+                    tagEl.className = 'personality-tag';
+                    tagEl.innerHTML = `${tag} <span class="tag-remove" data-index="${index}">×</span>`;
+                    personalityTagsContainer.appendChild(tagEl);
+                });
+
+                // 绑定标签删除事件
+                document.querySelectorAll('.tag-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = e.target.getAttribute('data-index');
+                        personalityTagsArray.splice(index, 1);
+                        renderPersonalityTags();
+                    });
+                });
+            }
+
+            // 自定义角色输入
+            customRoleInput.addEventListener('blur', () => {
+                const roleName = customRoleInput.value.trim();
+                if (roleName) {
+                    defaultRoleBtns.forEach(b => b.classList.remove('active'));
+                    currentRole = roleName;
+                    isCustomRole = true;
+                    updateCurrentRoleDisplay();
+                }
+            });
+
+            // 快速切换预设角色
+            roleSwitchBtn.addEventListener('click', () => {
+                if (!isCustomRole) {
+                    currentRole = currentRole === '马云波' ? '闫润泽' : '马云波';
+                    defaultRoleBtns.forEach(btn => {
+                        if (btn.getAttribute('data-role') === currentRole) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                    updateCurrentRoleDisplay();
+                    showToast(`已切换到角色：${currentRole}`);
+                } else {
+                    showToast('请先切换到预设角色再使用快速切换');
+                }
+            });
+
+            // 更新角色显示
+            function updateCurrentRoleDisplay() {
+                currentRoleEl.textContent = `当前角色：${currentRole}`;
+            }
+
+            // 保存设置
+            saveSettingsBtn.addEventListener('click', () => {
+                const customRole = customRoleInput.value.trim();
+                if (customRole) {
+                    currentRole = customRole;
+                    isCustomRole = true;
+                    defaultRoleBtns.forEach(b => b.classList.remove('active'));
+                    updateCurrentRoleDisplay();
+                }
+                showToast('设置已保存');
+                settingsOverlay.classList.remove('active');
+            });
+
+            // 生成角色提示词
+            function getRolePrompt() {
+                let prompt = '';
+                if (isCustomRole) {
+                    prompt = `请扮演${currentRole}，先分析该角色的性格和说话方式，`;
+                    if (personalityTagsArray.length > 0) {
+                        prompt += `叠加这些性格：${personalityTagsArray.join('、')}，`;
+                    }
+                    prompt += `用符合角色的语气回复。`;
+                } else {
+                    prompt = `请扮演${currentRole}，性格：${presetRoles[currentRole].personality}，用对应语气回复。`;
+                }
+                return prompt;
+            }
+
+            // 表情功能
+            emojiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                emojiPanel.style.display = emojiPanel.style.display === 'block' ? 'none' : 'block';
+            });
+
+            emojiList.forEach(emoji => {
+                emoji.addEventListener('click', () => {
+                    userInput.value += emoji.textContent;
+                    userInput.focus();
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!emojiBtn.contains(e.target) && !emojiPanel.contains(e.target)) {
+                    emojiPanel.style.display = 'none';
+                }
+            });
+
+            // 设置面板控制
+            settingsBtn.addEventListener('click', () => {
+                settingsOverlay.classList.add('active');
+            });
+
+            closeBtn.addEventListener('click', () => {
+                settingsOverlay.classList.remove('active');
+            });
+
+            settingsOverlay.addEventListener('click', (e) => {
+                if (e.target === settingsOverlay) {
+                    settingsOverlay.classList.remove('active');
+                }
+            });
+
+            // 按钮颜色切换
+            colorOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    const color = option.getAttribute('data-color');
+                    sendBtn.style.background = color;
+                    emojiBtn.style.background = color;
+                    saveBtn.style.background = color;
+                    roleSwitchBtn.style.background = color;
+                });
+            });
+
+            // 透明度调节
+            transparencySlider.addEventListener('input', () => {
+                const value = transparencySlider.value;
+                chatContainer.style.background = `rgba(255, 255, 255, ${value / 100})`;
+                chatContainer.style.boxShadow = value == 0 ? 'none' : '0 4px 20px rgba(0, 0, 0, 0.1)';
+            });
+
+            // 消息撤回
+            function addDeleteButton(messageElement) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    messageElement.innerHTML = '【消息已撤回】';
+                    messageElement.classList.add('retracted');
+                    messageElement.classList.remove('my-message');
+                    deleteBtn.remove();
+                });
+                messageElement.appendChild(deleteBtn);
+            }
+
+            // 保存聊天记录
+            saveBtn.addEventListener('click', () => {
+                const messages = chatMessages.querySelectorAll('.message:not(.retracted)');
+                if (messages.length === 0) {
+                    showToast('没有可保存的聊天记录');
+                    return;
+                }
+
+                let record = `聊天记录（${new Date().toLocaleString()}）- 角色：${currentRole}\n\n`;
+                messages.forEach((msg, i) => {
+                    const sender = msg.classList.contains('my-message') ? '我' : currentRole;
+                    record += `${i + 1}. ${sender}：${msg.textContent.trim()}\n`;
+                });
+
+                const blob = new Blob([record], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `聊天记录_${currentRole}_${Date.now()}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('聊天记录已保存');
+            });
+
+            // 提示框
+            function showToast(text) {
+                toast.textContent = text;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            }
+
+            // 发送消息
+            async function sendMsg() {
+                const text = userInput.value.trim();
+                if (!text) return;
+
+                // 添加用户消息
+                const userMsg = document.createElement('div');
+                userMsg.className = 'message my-message';
+                userMsg.textContent = text;
+                chatMessages.appendChild(userMsg);
+                addDeleteButton(userMsg);
+
+                userInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // 加载提示
+                const loadingMsg = document.createElement('div');
+                loadingMsg.className = 'message ai-message loading';
+                loadingMsg.textContent = '思考中...';
+                chatMessages.appendChild(loadingMsg);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    const rolePrompt = getRolePrompt();
+                    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer sk-61c4570a43eb41f69a60511fbaacc4ad'
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek-chat",
+                            messages: [
+                                { role: "system", content: rolePrompt },
+                                { role: "user", content: text }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    chatMessages.removeChild(loadingMsg);
+                    
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'message ai-message';
+                    aiMsg.textContent = data.choices[0].message.content;
+                    chatMessages.appendChild(aiMsg);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                } catch (error) {
+                    chatMessages.removeChild(loadingMsg);
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'message ai-message';
+                    errorMsg.textContent = '接口调用失败，请重试';
+                    chatMessages.appendChild(errorMsg);
+                }
+            }
+
+            // 绑定发送事件
+            sendBtn.addEventListener('click', sendMsg);
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') sendMsg();
+            });
+
+            // 初始化
+            updateCurrentRoleDisplay();
+        </script>
+    </body>
+</html>
